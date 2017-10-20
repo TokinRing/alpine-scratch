@@ -18,22 +18,15 @@ tmp() {
 
 apkv() {
   set -x
-  curl -s $REPO/$ARCH/APKINDEX.tar.gz | tar -Oxz |
-    grep '^P:apk-tools-static$' -a -A1 | tail -n1 | cut -d: -f2
+  curl -s $REPO/$ARCH/APKINDEX.tar.gz | tar -Oxz | grep '^P:apk-tools-static$' -a -A1 | tail -n1 | cut -d: -f2
 }
 
 getapk() {
-  curl -s $REPO/$ARCH/apk-tools-static-$(apkv).apk |
-    tar -xz -C $TMP sbin/apk.static
+  curl -s $REPO/$ARCH/apk-tools-static-$(apkv).apk | tar -xz -C $TMP sbin/apk.static
 }
 
 mkbase() {
-  $TMP/sbin/apk.static --repository $REPO --update-cache --allow-untrusted \
-    --root $ROOTFS --initdb add alpine-base
-}
-
-conf() {
-  printf '%s\n' $REPO > $ROOTFS/etc/apk/repositories
+  $TMP/sbin/apk.static --repository $REPO --update-cache --allow-untrusted --root $ROOTFS --initdb add alpine-base
 }
 
 pack() {
@@ -46,10 +39,7 @@ pack() {
 
 save() {
   [ $SAVE -eq 1 ] || return
-
-#  tar --numeric-owner -C $ROOTFS -c . | xz > rootfs.tar.xz
   tar --numeric-owner -C $ROOTFS -cf rootfs.tar .
-
 }
 
 while getopts "hr:m:s" opt; do
@@ -72,23 +62,23 @@ done
 REL=${REL:-edge}
 MIRROR=${MIRROR:-http://mirror.clarkson.edu/alpine}
 SAVE=${SAVE:-0}
-REPO=$MIRROR/$REL/main
+MAIN_REPO=$MIRROR/$REL/main
+COMMUNITY_REPO=$MIRROR/$REL/community
 ARCH=armhf
 TAG=tokinring/alpine-arm
 
-echo -e "prepare\n\n"
+echo -e "Preparing temporary root filesystem for ${TAG} and static apk executable\n"
 tmp && getapk
 
-echo -e "makebase\n\n"
+echo -e "Creating base environment\n"
 mkbase
 
+echo -e "Configuring repositories\n"
+echo -e "$MAIN_REPO\n" > $ROOTFS/etc/apk/repositories
+echo -e "$COMMUNITY_REPO\n" > $ROOTFS/etc/apk/repositories
 
-echo -e "config\n\n"
-echo -e "$REPO\n" > $ROOTFS/etc/apk/repositories
-#conf
-
-echo -e "pack\n\n"
+echo -e "Packing temporary filesystem into docker image\n"
 pack
 
-echo -e "save\n\n"
+echo -e "Saving packed filesystem archive\n"
 save
