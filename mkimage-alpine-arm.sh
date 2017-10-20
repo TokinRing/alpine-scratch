@@ -26,7 +26,7 @@ getapk() {
 }
 
 mkbase() {
-  $TMP/sbin/apk.static --repository $REPO --update-cache --allow-untrusted --root $ROOTFS --initdb add alpine-base
+  $TMP/sbin/apk.static --repository $REPO --repository $COMMUNITY_REPO --update-cache --allow-untrusted --root $ROOTFS --initdb add alpine-base
 }
 
 pack() {
