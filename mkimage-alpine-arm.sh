@@ -12,24 +12,29 @@ usage() {
 }
 
 tmp() {
+  set -x
   TMP=$(mktemp -d /tmp/alpine-docker-XXXXXXXXXX)
   ROOTFS=$(mktemp -d /tmp/alpine-docker-rootfs-XXXXXXXXXX)
   trap "rm -rf $TMP $ROOTFS" EXIT TERM INT
 }
 
 apkv() {
+  set -x
   curl -s $MAIN_REPO/$ARCH/APKINDEX.tar.gz | tar -Oxz | grep '^P:apk-tools-static$' -a -A1 | tail -n1 | cut -d: -f2
 }
 
 getapk() {
+  set -x
   curl -s $MAINREPO/$ARCH/apk-tools-static-$(apkv).apk | tar -xz -C $TMP sbin/apk.static
 }
 
 mkbase() {
+  set -x
   $TMP/sbin/apk.static --repository $MAIN_REPO --repository $COMMUNITY REPO --update-cache --allow-untrusted --root $ROOTFS --initdb add alpine-base
 }
 
 pack() {
+  set -x
   local id
   id=$(tar --numeric-owner -C $ROOTFS -c . | docker import - $TAG:$REL)
 
@@ -38,6 +43,7 @@ pack() {
 }
 
 save() {
+  set -x
   [ $SAVE -eq 1 ] || return
   tar --numeric-owner -C $ROOTFS -cf rootfs.tar .
 }
