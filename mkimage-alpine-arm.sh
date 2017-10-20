@@ -1,4 +1,5 @@
 #!/bin/sh
+set -x
 
 [ $(id -u) -eq 0 ] || {
   printf >&2 '%s requires root\n' "$0"
@@ -17,16 +18,15 @@ tmp() {
 }
 
 apkv() {
-  set -x
-  curl -s $REPO/$ARCH/APKINDEX.tar.gz | tar -Oxz | grep '^P:apk-tools-static$' -a -A1 | tail -n1 | cut -d: -f2
+  curl -s $MAIN_REPO/$ARCH/APKINDEX.tar.gz | tar -Oxz | grep '^P:apk-tools-static$' -a -A1 | tail -n1 | cut -d: -f2
 }
 
 getapk() {
-  curl -s $REPO/$ARCH/apk-tools-static-$(apkv).apk | tar -xz -C $TMP sbin/apk.static
+  curl -s $MAINREPO/$ARCH/apk-tools-static-$(apkv).apk | tar -xz -C $TMP sbin/apk.static
 }
 
 mkbase() {
-  $TMP/sbin/apk.static --repository $REPO --update-cache --allow-untrusted --root $ROOTFS --initdb add alpine-base
+  $TMP/sbin/apk.static --repository $MAIN_REPO --repository $COMMUNITY REPO --update-cache --allow-untrusted --root $ROOTFS --initdb add alpine-base
 }
 
 pack() {
