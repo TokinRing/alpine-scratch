@@ -75,7 +75,7 @@ mkbase
 
 echo -e "Configuring repositories\n"
 echo -e "$REPO\n" > $ROOTFS/etc/apk/repositories
-echo -e "$COMMUNITY_REPO\n" > $ROOTFS/etc/apk/repositories
+echo -e "$COMMUNITY_REPO\n" >> $ROOTFS/etc/apk/repositories
 
 echo -e "Packing temporary filesystem into docker image\n"
 pack
