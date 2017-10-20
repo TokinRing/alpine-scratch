@@ -18,15 +18,15 @@ tmp() {
 
 apkv() {
   set -x
-  curl -s $MAIN_REPO/$ARCH/APKINDEX.tar.gz | tar -Oxz | grep '^P:apk-tools-static$' -a -A1 | tail -n1 | cut -d: -f2
+  curl -s $REPO/$ARCH/APKINDEX.tar.gz | tar -Oxz | grep '^P:apk-tools-static$' -a -A1 | tail -n1 | cut -d: -f2
 }
 
 getapk() {
-  curl -s $MAINREPO/$ARCH/apk-tools-static-$(apkv).apk | tar -xz -C $TMP sbin/apk.static
+  curl -s $REPO/$ARCH/apk-tools-static-$(apkv).apk | tar -xz -C $TMP sbin/apk.static
 }
 
 mkbase() {
-  $TMP/sbin/apk.static --repository $MAIN_REPO --repository $COMMUNITY REPO --update-cache --allow-untrusted --root $ROOTFS --initdb add alpine-base
+  $TMP/sbin/apk.static --repository $REPO --update-cache --allow-untrusted --root $ROOTFS --initdb add alpine-base
 }
 
 pack() {
@@ -62,7 +62,7 @@ done
 REL=${REL:-edge}
 MIRROR=${MIRROR:-http://mirror.clarkson.edu/alpine}
 SAVE=${SAVE:-0}
-MAIN_REPO=$MIRROR/$REL/main
+REPO=$MIRROR/$REL/main
 COMMUNITY_REPO=$MIRROR/$REL/community
 ARCH=armhf
 TAG=tokinring/alpine-arm
@@ -74,7 +74,7 @@ echo -e "Creating base environment\n"
 mkbase
 
 echo -e "Configuring repositories\n"
-echo -e "$MAIN_REPO\n" > $ROOTFS/etc/apk/repositories
+echo -e "$REPO\n" > $ROOTFS/etc/apk/repositories
 echo -e "$COMMUNITY_REPO\n" > $ROOTFS/etc/apk/repositories
 
 echo -e "Packing temporary filesystem into docker image\n"
