@@ -1,4 +1,22 @@
 #!/bin/sh
+# Script to build and import alpine edge docker image
+
+REL=${REL:-edge}
+MIRROR=${MIRROR:-http://mirror.clarkson.edu/alpine}
+SAVE=${SAVE:-0}
+REPO=$MIRROR/$REL/main
+COMMUNITY_REPO=$MIRROR/$REL/community
+ARCH="$(uname -m)"
+BUILD_ARCH=${BUILD_ARCH:-$ARCH}
+TAG=tokinring/alpine
+
+case "$BUILD_ARCH" in
+  armv* )
+    ARCH_TYPE="armhf"
+    ;;
+  *)
+    ARCH_TYPE=$ARCH
+esac
 
 [ $(id -u) -eq 0 ] || {
   printf >&2 '%s requires root\n' "$0"
@@ -18,11 +36,11 @@ tmp() {
 
 apkv() {
   set -x
-  curl -s $REPO/$ARCH/APKINDEX.tar.gz | tar -Oxz |grep '^P:apk-tools-static$' -a -A1 | tail -n1 | cut -d: -f2
+  curl -s $REPO/$ARCH_TYPE/APKINDEX.tar.gz | tar -Oxz |grep '^P:apk-tools-static$' -a -A1 | tail -n1 | cut -d: -f2
 }
 
 getapk() {
-  curl -s $REPO/$ARCH/apk-tools-static-$(apkv).apk | tar -xz -C $TMP sbin/apk.static
+  curl -s $REPO/$ARCH_TYPE/apk-tools-static-$(apkv).apk | tar -xz -C $TMP sbin/apk.static
 }
 
 mkbase() {
@@ -58,14 +76,6 @@ while getopts "hr:m:s" opt; do
       ;;
   esac
 done
-
-REL=${REL:-edge}
-MIRROR=${MIRROR:-http://mirror.clarkson.edu/alpine}
-SAVE=${SAVE:-0}
-REPO=$MIRROR/$REL/main
-COMMUNITY_REPO=$MIRROR/$REL/community
-ARCH=x86_64
-TAG=tokinring/alpine
 
 echo -e "Preparing temporary root filesystem for ${TAG} and static apk executable\n"
 tmp && getapk
