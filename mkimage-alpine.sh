@@ -8,14 +8,15 @@ REPO=$MIRROR/$REL/main
 COMMUNITY_REPO=$MIRROR/$REL/community
 ARCH="$(uname -m)"
 BUILD_ARCH=${BUILD_ARCH:-$ARCH}
-TAG=tokinring/alpine
 
 case "$BUILD_ARCH" in
   armv* )
     ARCH_TYPE="armhf"
+    TAG=tokinring/alpine-arm
     ;;
   *)
     ARCH_TYPE=$ARCH
+    TAG=tokinring/alpine
 esac
 
 [ $(id -u) -eq 0 ] || {
